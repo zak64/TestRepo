@@ -30,22 +30,18 @@ jobs:
       - name: Validate PR Title
         shell: bash
         run: |
-          # Get the PR Title from the GitHub Event context
           TITLE="${{ github.event.pull_request.title }}"
-          
+
           echo "Verifying PR Title: $TITLE"
-          
-          # Regex explanation:
-          # ^      : Start of the string
-          # DEV-   : Literal text
-          # [0-9]+ : One or more digits
-          if [[ ! $TITLE =~ ^DEV-[0-9]+ ]]; then
+
+          # Required format: DEV-<digits> : <title_or_description>
+          if [[ ! $TITLE =~ ^DEV-[0-9]+\ :\ .+ ]]; then
             echo "--------------------------------------------------------"
-            echo "❌ ERROR: PR Title must start with a YouTrack ID."
-            echo "Expected: 'DEV-1110 : Your description'"
+            echo "❌ ERROR: PR Title format is invalid."
+            echo "Expected: 'DEV-12345 : Your title or description'"
             echo "Received: '$TITLE'"
             echo "--------------------------------------------------------"
             exit 1
           else
-            echo "✅ Success: PR Title is valid."
+            echo "✅ Success: PR Title format is valid."
           fi
