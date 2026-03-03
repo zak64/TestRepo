@@ -34,13 +34,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # 1. We define a custom pattern that looks specifically for DEV-XXX
-          # The regex below looks for DEV- followed by digits at the start of the title
+          # 1. We redefine the header to say: "The whole line is just one big group"
+          # This stops the action from looking for 'feat:' or 'fix:'
+          headerPattern: '^(.+)$'
+          
+          # 2. We tell it that the first group in our pattern above is the "subject"
+          headerPatternCorrespondence: subject
+          
+          # 3. Now we check that "subject" (the whole title) for your YouTrack ID
           subjectPattern: ^DEV-\d+
-          
-          # 2. This tells the action "I don't care about feat/fix/chore prefixes"
-          # We provide a dummy pattern that matches everything to bypass the 'type' check
-          headerPattern: '^(.*)$'
-          
-          # 3. This ensures the error message actually tells your team what to do
-          subjectPatternError: "❌ PR title must start with your YouTrack ID (e.g., 'DEV-1110: My description')."
+          subjectPatternError: "❌ PR title must start with your YouTrack ID (e.g., 'DEV-1110 : Add function')."
