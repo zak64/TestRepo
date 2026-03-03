@@ -27,22 +27,25 @@ jobs:
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
     steps:
-      - name: Validate PR Title for DEV-XXX
+      - name: Validate PR Title
         shell: bash
         run: |
-          # Get the PR Title from the GitHub context
+          # Get the PR Title from the GitHub Event context
           TITLE="${{ github.event.pull_request.title }}"
           
-          echo "Checking PR Title: $TITLE"
+          echo "Verifying PR Title: $TITLE"
           
-          # Regex: Starts with 'DEV-' followed by one or more digits
+          # Regex explanation:
+          # ^      : Start of the string
+          # DEV-   : Literal text
+          # [0-9]+ : One or more digits
           if [[ ! $TITLE =~ ^DEV-[0-9]+ ]]; then
-            echo "-------------------------------------------------------"
-            echo "❌ ERROR: Invalid PR Title format."
-            echo "Your title must start with a YouTrack ID (e.g., 'DEV-1110 : Add function')."
-            echo "Current title: '$TITLE'"
-            echo "-------------------------------------------------------"
+            echo "--------------------------------------------------------"
+            echo "❌ ERROR: PR Title must start with a YouTrack ID."
+            echo "Expected: 'DEV-1110 : Your description'"
+            echo "Received: '$TITLE'"
+            echo "--------------------------------------------------------"
             exit 1
           else
-            echo "✅ Success: PR title contains a valid YouTrack ID."
+            echo "✅ Success: PR Title is valid."
           fi
