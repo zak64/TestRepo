@@ -3,40 +3,45 @@ name: Python Unit Tests
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, edited, synchronize] # Added types for better PR tracking
   push:
     branches: [ main ]
   workflow_dispatch:
-  
+
 jobs:
+  # This job runs for both Pushes and PRs
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: pytest
+
+  # This job ONLY runs if the event is a Pull Request
   check-youtrack-id:
+    if: github.event_name == 'pull_request'
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR Title
-        uses: amannn/action-check-pull-request-title@v1
-        with:
-          # This regex matches 'DEV-' followed by 1 or more digits
-          pattern: '^DEV-\d+'
-          message: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Added login logic')."
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11' # Change to your project's version
-
-      - name: Install dependencies
+        shell: bash
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Ensure pytest is installed even if not in requirements.txt
-          pip install pytest 
+          TITLE="${{ github.event.pull_request.title }}"
 
-      - name: Run tests with pytest
-        run: |
-          pytest
+          echo "Verifying PR Title: $TITLE"
+
+          # Required format: DEV-<digits> : <title_or_description>
+          if [[ ! $TITLE =~ ^DEV-[0-9]+\ :\ .+ ]]; then
+            echo "--------------------------------------------------------"
+            echo "❌ ERROR: PR Title format is invalid."
+            echo "Expected: 'DEV-12345 : Your title or description'"
+            echo "Received: '$TITLE'"
+            echo "--------------------------------------------------------"
+            exit 1
+          else
+            echo "✅ Success: PR Title format is valid."
+          fi
