@@ -23,7 +23,7 @@ jobs:
 
   # This job ONLY runs if the event is a Pull Request
   check-youtrack-id:
-    if: github.event_name == 'pull_request' # <--- This prevents the error
+    if: github.event_name == 'pull_request'
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
     permissions:
@@ -34,5 +34,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # 1. We define a custom pattern that looks specifically for DEV-XXX
+          # The regex below looks for DEV- followed by digits at the start of the title
           subjectPattern: ^DEV-\d+
-          subjectPatternError: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Fix login issue')."
+          
+          # 2. This tells the action "I don't care about feat/fix/chore prefixes"
+          # We provide a dummy pattern that matches everything to bypass the 'type' check
+          headerPattern: '^(.*)$'
+          
+          # 3. This ensures the error message actually tells your team what to do
+          subjectPatternError: "❌ PR title must start with your YouTrack ID (e.g., 'DEV-1110: My description')."
