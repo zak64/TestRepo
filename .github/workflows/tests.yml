@@ -8,6 +8,16 @@ on:
   workflow_dispatch:
   
 jobs:
+  check-youtrack-id:
+    name: "Check YouTrack ID"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR Title
+        uses: amannn/action-check-pull-request-title@v1
+        with:
+          # This regex matches 'DEV-' followed by 1 or more digits
+          pattern: '^DEV-\d+'
+          message: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Added login logic')."
   test:
     runs-on: ubuntu-latest
     
