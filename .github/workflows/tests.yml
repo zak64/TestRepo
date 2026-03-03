@@ -26,21 +26,23 @@ jobs:
     if: github.event_name == 'pull_request'
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
     steps:
-      - name: Validate PR Title
-        uses: amannn/action-semantic-pull-request@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # 1. We redefine the header to say: "The whole line is just one big group"
-          # This stops the action from looking for 'feat:' or 'fix:'
-          headerPattern: '^(.+)$'
+      - name: Validate PR Title for DEV-XXX
+        shell: bash
+        run: |
+          # Get the PR Title from the GitHub context
+          TITLE="${{ github.event.pull_request.title }}"
           
-          # 2. We tell it that the first group in our pattern above is the "subject"
-          headerPatternCorrespondence: subject
+          echo "Checking PR Title: $TITLE"
           
-          # 3. Now we check that "subject" (the whole title) for your YouTrack ID
-          subjectPattern: ^DEV-\d+
-          subjectPatternError: "❌ PR title must start with your YouTrack ID (e.g., 'DEV-1110 : Add function')."
+          # Regex: Starts with 'DEV-' followed by one or more digits
+          if [[ ! $TITLE =~ ^DEV-[0-9]+ ]]; then
+            echo "-------------------------------------------------------"
+            echo "❌ ERROR: Invalid PR Title format."
+            echo "Your title must start with a YouTrack ID (e.g., 'DEV-1110 : Add function')."
+            echo "Current title: '$TITLE'"
+            echo "-------------------------------------------------------"
+            exit 1
+          else
+            echo "✅ Success: PR title contains a valid YouTrack ID."
+          fi
