@@ -8,16 +8,24 @@ on:
   workflow_dispatch:
   
 jobs:
+  
   check-youtrack-id:
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
+    # This part is crucial: it tells the token it's allowed to read PR info
+    permissions:
+      pull-requests: read
+      contents: read
+      
     steps:
       - name: Validate PR Title
-        uses: amannn/action-check-pull-request-title@v1
+        uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # No setup needed, GitHub fills this in
         with:
-          # This regex matches 'DEV-' followed by 1 or more digits
-          pattern: '^DEV-\d+'
-          message: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Added login logic')."
+          subjectPattern: ^DEV-\d+
+          subjectPatternError: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Fix bug')."
+          
   test:
     runs-on: ubuntu-latest
     
