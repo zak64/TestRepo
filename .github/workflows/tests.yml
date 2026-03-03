@@ -3,48 +3,36 @@ name: Python Unit Tests
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, edited, synchronize] # Added types for better PR tracking
   push:
     branches: [ main ]
   workflow_dispatch:
-  
+
 jobs:
-  
+  # This job runs for both Pushes and PRs
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: pytest
+
+  # This job ONLY runs if the event is a Pull Request
   check-youtrack-id:
+    if: github.event_name == 'pull_request' # <--- This prevents the error
     name: "Check YouTrack ID"
     runs-on: ubuntu-latest
-    # This part is crucial: it tells the token it's allowed to read PR info
     permissions:
       pull-requests: read
-      contents: read
-      
     steps:
       - name: Validate PR Title
         uses: amannn/action-semantic-pull-request@v6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # No setup needed, GitHub fills this in
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           subjectPattern: ^DEV-\d+
-          subjectPatternError: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Fix bug')."
-          
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11' # Change to your project's version
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # Ensure pytest is installed even if not in requirements.txt
-          pip install pytest 
-
-      - name: Run tests with pytest
-        run: |
-          pytest
+          subjectPatternError: "❌ Your PR title must start with a YouTrack ID (e.g., 'DEV-123: Fix login issue')."
