@@ -7,4 +7,7 @@ def f1(a):
     #return 3 # break the unit test
 
 def f2(a):
-     return a
+     return a+1
+
+def f3(a):
+     return a+1
